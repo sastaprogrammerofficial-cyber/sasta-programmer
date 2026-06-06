@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sasta Programmer | Web Dev Studio</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #030a14;
+            --text-light: #e2e8f0;
+            --wd-primary: #00d4ff;
+            --wd-secondary: #0b2447;
+            --wd-glow: rgba(0, 212, 255, 0.4);
+            --wd-bg-trans: rgba(0, 212, 255, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Sleek Digital Background */
+        .bg-mesh {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at 15% 50%, rgba(11, 36, 71, 0.6), transparent 25%),
+                        radial-gradient(circle at 85% 30%, rgba(0, 212, 255, 0.1), transparent 25%);
+            z-index: -2;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+        }
+
+        /* Glassmorphism for Web Dev */
+        .glass-card {
+            background: rgba(10, 15, 30, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--wd-glow);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            border-color: var(--wd-primary);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 20px var(--wd-bg-trans);
+            transform: translateY(-5px);
+        }
+
+        /* Premium Buttons */
+        .btn-premium {
+            position: relative;
+            padding: 14px 32px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: transparent;
+            color: var(--wd-primary);
+            border: 1px solid var(--wd-primary);
+            border-radius: 6px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-premium::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 0%; height: 100%;
+            background: var(--wd-primary);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        .btn-premium:hover::before { width: 100%; }
+        .btn-premium:hover { color: #000; box-shadow: 0 0 20px var(--wd-glow); }
+
+        .text-gradient {
+            background: linear-gradient(to right, #fff, var(--wd-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Form Inputs */
+        .form-input {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 16px;
+            color: white;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .form-input:focus { border-color: var(--wd-primary); box-shadow: 0 0 15px var(--wd-bg-trans); background: rgba(0, 212, 255, 0.02); }
+
+        /* Calculator Specifics */
+        .calc-toggle {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .calc-toggle:hover { border-color: var(--wd-primary); background: var(--wd-bg-trans); }
+        .calc-toggle.active { border-color: var(--wd-primary); background: rgba(0, 212, 255, 0.1); }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px);
+            display: flex; items-center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content { transform: scale(0.95); transition: all 0.3s ease; }
+        .modal-overlay.active .modal-content { transform: scale(1); }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="bg-mesh"></div>
+    <div class="grid-overlay"></div>
+
+    <!-- Header -->
+    <header class="fixed w-full top-0 z-50 bg-[#030a14]/80 backdrop-blur-md border-b border-white/5 transition-all">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="index.html" class="text-xl md:text-2xl font-bold brand-font tracking-wider flex items-center gap-2 hover:opacity-80">
+                <i class="fa-solid fa-code text-[var(--wd-primary)]"></i>
+                <span class="text-white">Sasta</span>
+                <span class="text-[var(--wd-primary)]" style="text-shadow: 0 0 10px var(--wd-glow);">Studio</span>
+            </a>
+            <a href="index.html" class="text-gray-400 hover:text-[var(--wd-primary)] text-sm font-semibold flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-arrow-left"></i> Back to Hub
+            </a>
+        </div>
+    </header>
+
+    <main class="pt-32 pb-20 container mx-auto px-6 max-w-7xl">
+        
+        <!-- Hero -->
+        <div class="text-center max-w-3xl mx-auto mb-20">
+            <div class="inline-block px-4 py-1 rounded-full border border-[var(--wd-primary)] text-[var(--wd-primary)] text-xs font-semibold mb-6 shadow-[0_0_10px_var(--wd-glow)] bg-[var(--wd-bg-trans)] uppercase tracking-widest">
+                <i class="fa-solid fa-rocket mr-2"></i> Premium Engineering
+            </div>
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 text-gradient leading-tight">Elevate Your Brand's Digital Presence.</h1>
+            <p class="text-gray-400 text-lg">We architect high-performance, scalable, and visually stunning web applications tailored to your business needs.</p>
+        </div>
+
+        <!-- Portfolio Showcase -->
+        <div class="mb-24">
+            <h2 class="text-2xl font-bold text-white brand-font mb-8 flex items-center gap-3">
+                <i class="fa-solid fa-layer-group text-[var(--wd-primary)]"></i> Featured Masterpieces
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Project 1 -->
+                <div class="glass-card overflow-hidden group">
+                    <div class="h-48 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#030a14] to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=800" alt="Dashboard" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-8">
+                        <div class="flex gap-2 mb-3">
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">React</span>
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">Node.js</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">FinTech Analytics Dashboard</h3>
+                        <p class="text-sm text-gray-400">Real-time data visualization platform processing thousands of transactions per second.</p>
+                    </div>
+                </div>
+
+                <!-- Project 2 -->
+                <div class="glass-card overflow-hidden group">
+                    <div class="h-48 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#030a14] to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" alt="E-commerce" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-8">
+                        <div class="flex gap-2 mb-3">
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">Next.js</span>
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">Stripe</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Luxury E-Commerce Store</h3>
+                        <p class="text-sm text-gray-400">A highly optimized, SEO-friendly storefront with seamless global checkout.</p>
+                    </div>
+                </div>
+
+                <!-- Project 3 -->
+                <div class="glass-card overflow-hidden group">
+                    <div class="h-48 bg-gray-800 relative overflow-hidden">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#030a14] to-transparent z-10"></div>
+                        <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800" alt="Real Estate Landing Page" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                    </div>
+                    <div class="p-6 relative z-20 -mt-8">
+                        <div class="flex gap-2 mb-3">
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">HTML5</span>
+                            <span class="text-[10px] uppercase tracking-wider bg-[#0b2447] text-[var(--wd-primary)] px-2 py-1 rounded border border-[var(--wd-primary)]/30">Tailwind CSS</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Boutique Real Estate</h3>
+                        <p class="text-sm text-gray-400">A visually stunning, high-performance landing page featuring smooth animations and premium typography.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactive Order Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            
+            <!-- Left Side: Interactive Calculator -->
+            <div>
+                <h2 class="text-2xl font-bold text-white brand-font mb-2">Project Estimator</h2>
+                <p class="text-gray-400 text-sm mb-8">Get a transparent, instant estimate for your next big idea.</p>
+                
+                <div class="glass-card p-6 sm:p-8 space-y-6">
+                    
+                    <!-- Base Project Type -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">1. Select Architecture</label>
+                        <select id="calc-type" class="form-input text-white appearance-none cursor-pointer font-semibold">
+                            <option value="150">Landing Page / Portfolio (Starts at $150)</option>
+                            <option value="350">Corporate Website (Starts at $350)</option>
+                            <option value="600">E-Commerce Platform (Starts at $600)</option>
+                            <option value="900">Custom Web App / SaaS (Starts at $900)</option>
+                        </select>
+                    </div>
+
+                    <!-- Add-ons -->
+                    <div>
+                        <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">2. Digital Enhancements</label>
+                        <div class="space-y-3">
+                            <div class="calc-toggle" onclick="toggleAddon(this, 100)">
+                                <div>
+                                    <p class="font-bold text-white text-sm">Premium UI/UX Design</p>
+                                    <p class="text-xs text-gray-500">Custom tailored Figma prototypes</p>
+                                </div>
+                                <span class="text-[var(--wd-primary)] font-bold">+$100</span>
+                            </div>
+                            <div class="calc-toggle" onclick="toggleAddon(this, 50)">
+                                <div>
+                                    <p class="font-bold text-white text-sm">Advanced SEO Setup</p>
+                                    <p class="text-xs text-gray-500">Rank higher on Google</p>
+                                </div>
+                                <span class="text-[var(--wd-primary)] font-bold">+$50</span>
+                            </div>
+                            <div class="calc-toggle" onclick="toggleAddon(this, 150)">
+                                <div>
+                                    <p class="font-bold text-white text-sm">Priority Delivery</p>
+                                    <p class="text-xs text-gray-500">Skip the queue. Built in half the time.</p>
+                                </div>
+                                <span class="text-[var(--wd-primary)] font-bold">+$150</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Total Display -->
+                    <div class="pt-6 border-t border-white/10 flex justify-between items-end">
+                        <div>
+                            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Estimated Investment</p>
+                            <p class="text-xs text-[var(--wd-primary)] mt-1">*Final quote may vary based on scope</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-4xl font-bold text-white brand-font" id="calc-total">$150</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Order Form -->
+            <div>
+                <h2 class="text-2xl font-bold text-white brand-font mb-2">Initiate Protocol</h2>
+                <p class="text-gray-400 text-sm mb-8">Send us your brief. We respond within 24 hours via WhatsApp.</p>
+                
+                <div class="glass-card p-6 sm:p-8">
+                    <form id="order-form" class="space-y-5">
+                        
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Full Name</label>
+                                <input type="text" class="form-input" placeholder="John Doe" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">WhatsApp Number</label>
+                                <input type="tel" class="form-input" placeholder="+1 234 567 8900" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Email Address</label>
+                            <input type="email" class="form-input" placeholder="john@company.com" required>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Project Brief</label>
+                            <textarea rows="5" class="form-input resize-none" placeholder="Describe your vision, target audience, and any reference websites..." required></textarea>
+                        </div>
+
+                        <button type="submit" class="btn-premium w-full py-4 text-lg mt-4">
+                            <i class="fa-solid fa-paper-plane"></i> Submit Request
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Custom Success Modal -->
+    <div id="success-modal" class="modal-overlay flex items-center justify-center">
+        <div class="modal-content glass-card p-10 max-w-md w-full mx-4 text-center border-t border-[var(--wd-primary)] shadow-[0_0_40px_var(--wd-glow)]">
+            <div class="w-20 h-20 rounded-full bg-[var(--wd-bg-trans)] border-2 border-[var(--wd-primary)] flex items-center justify-center mx-auto mb-6 text-4xl text-[var(--wd-primary)] shadow-[0_0_20px_var(--wd-glow)]">
+                <i class="fa-solid fa-check-double"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-white mb-3 brand-font">Transmission Sent</h3>
+            <p class="text-gray-400 text-sm mb-8 leading-relaxed">Your project brief has been securely transmitted to our engineering team. We will contact you on WhatsApp shortly to discuss details.</p>
+            <button onclick="closeModal()" class="btn-premium w-full py-3 text-sm">Return to Studio</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const calcType = document.getElementById('calc-type');
+            const calcTotalDisplay = document.getElementById('calc-total');
+            const orderForm = document.getElementById('order-form');
+            const successModal = document.getElementById('success-modal');
+            
+            let basePrice = parseInt(calcType.value);
+            let addonPrice = 0;
+
+            // Update Total Function
+            const updateTotal = () => {
+                calcTotalDisplay.innerText = `$${basePrice + addonPrice}`;
+                
+                // Add a cool little pulse animation when the price changes
+                calcTotalDisplay.style.transform = 'scale(1.1)';
+                calcTotalDisplay.style.color = 'var(--wd-primary)';
+                setTimeout(() => {
+                    calcTotalDisplay.style.transform = 'scale(1)';
+                    calcTotalDisplay.style.color = 'white';
+                }, 200);
+            };
+
+            // Listen to Base Type Change
+            calcType.addEventListener('change', (e) => {
+                basePrice = parseInt(e.target.value);
+                updateTotal();
+            });
+
+            // Handle Add-on Toggles
+            window.toggleAddon = (element, price) => {
+                element.classList.toggle('active');
+                if (element.classList.contains('active')) {
+                    addonPrice += price;
+                } else {
+                    addonPrice -= price;
+                }
+                updateTotal();
+            };
+
+            // Form Submission Handling
+            orderForm.addEventListener('submit', (e) => {
+                e.preventDefault(); // Prevent page reload
+                
+                const btn = orderForm.querySelector('button[type="submit"]');
+                const originalText = btn.innerHTML;
+                
+                // Simulate processing delay for premium feel
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Encrypting Data...';
+                btn.style.pointerEvents = 'none';
+
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.style.pointerEvents = 'auto';
+                    successModal.classList.add('active');
+                    orderForm.reset();
+                    
+                    // Reset calculator visually
+                    document.querySelectorAll('.calc-toggle').forEach(el => el.classList.remove('active'));
+                    addonPrice = 0;
+                    calcType.selectedIndex = 0;
+                    basePrice = parseInt(calcType.value);
+                    updateTotal();
+                    
+                }, 1500);
+            });
+
+            // Close Modal Function
+            window.closeModal = () => {
+                successModal.classList.remove('active');
+            };
+        });
+    </script>
+</body>
+</html>

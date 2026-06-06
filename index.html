@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sasta Programmer | Code the Future</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* Base Colors */
+            --bg-dark: #050505;
+            --text-light: #e0e0e0;
+            
+            /* Python Theme (Vibrant, Engaging, Cyber-Hacker) */
+            --py-primary: #00ff66;
+            --py-secondary: #0a4d22;
+            --py-glow: rgba(0, 255, 102, 0.4);
+            
+            /* Web Dev Theme (Professional, Sleek, Corporate Sci-Fi) */
+            --wd-primary: #00d4ff;
+            --wd-secondary: #0b2447;
+            --wd-glow: rgba(0, 212, 255, 0.4);
+            
+            /* Current Theme Variables (Controlled by JS) */
+            --theme-primary: var(--py-primary);
+            --theme-secondary: var(--py-secondary);
+            --theme-glow: var(--py-glow);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            overflow-x: hidden;
+            transition: all 0.5s ease-in-out;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Sci-Fi Background Grid & Orbs */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(var(--theme-secondary) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--theme-secondary) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.15;
+            z-index: -2;
+            transition: background-image 0.8s ease;
+        }
+
+        .glow-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
+            transition: all 1s ease;
+        }
+        .orb-1 { top: -10%; left: -10%; width: 40vw; height: 40vw; background: var(--theme-secondary); opacity: 0.5; }
+        .orb-2 { bottom: -10%; right: -10%; width: 30vw; height: 30vw; background: var(--theme-primary); opacity: 0.15; }
+
+        /* The Custom Slider Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin: 10px 0;
+            z-index: 50;
+            width: 100%;
+        }
+        @media (min-width: 1024px) {
+            .toggle-container { gap: 15px; margin: 20px 0; width: auto; }
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 80px;
+            height: 40px;
+            flex-shrink: 0;
+        }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--py-secondary);
+            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-radius: 40px;
+            border: 2px solid var(--py-primary);
+            box-shadow: 0 0 15px var(--py-glow);
+        }
+        .slider:before {
+            position: absolute;
+            content: "\f3e2"; /* Python icon approx */
+            font-family: "Font Awesome 6 Brands";
+            height: 32px;
+            width: 32px;
+            left: 2px;
+            bottom: 2px;
+            background-color: var(--py-primary);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: .4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: var(--wd-secondary);
+            border-color: var(--wd-primary);
+            box-shadow: 0 0 15px var(--wd-glow);
+        }
+        input:checked + .slider:before {
+            transform: translateX(40px);
+            background-color: var(--wd-primary);
+            content: "\f121"; /* Code icon */
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+        }
+
+        .toggle-label {
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: color 0.3s;
+            font-size: 0.85rem;
+            flex: 1;
+        }
+        .label-py { color: var(--py-primary); text-shadow: 0 0 10px var(--py-glow); text-align: right; }
+        .label-wd { color: #666; text-align: left; }
+        
+        @media (min-width: 768px) {
+            .toggle-label { font-size: 1rem; letter-spacing: 1px; flex: none; }
+            .label-py { text-align: center; }
+            .label-wd { text-align: center; }
+        }
+        
+        /* State when Web Dev is active */
+        body.webdev-active .label-py { color: #666; text-shadow: none; }
+        body.webdev-active .label-wd { color: var(--wd-primary); text-shadow: 0 0 10px var(--wd-glow); }
+
+        /* View Transitions */
+        .view-section {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.6s forwards ease-in-out;
+        }
+        .view-section.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Buttons styling */
+        .btn-sci-fi {
+            position: relative;
+            padding: 12px 28px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            background: transparent;
+            color: var(--theme-primary);
+            border: 1px solid var(--theme-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+        }
+        .btn-sci-fi::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: var(--theme-primary);
+            transition: all 0.4s ease;
+            z-index: -1;
+        }
+        .btn-sci-fi:hover::before {
+            left: 0;
+        }
+        .btn-sci-fi:hover {
+            color: #000;
+            box-shadow: 0 0 20px var(--theme-glow);
+        }
+
+        .btn-solid {
+            background: var(--theme-primary);
+            color: #000;
+            border: none;
+            box-shadow: 0 0 15px var(--theme-glow);
+        }
+        .btn-solid::before {
+            background: var(--text-light);
+        }
+
+        /* Scroll Reveal Animation */
+        .reveal {
+            opacity: 0;
+            transform: translateY(50px) scale(0.95);
+            transition: all 0.8s cubic-bezier(0.5, 0, 0, 1);
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Text Gradients */
+        .text-gradient {
+            background: linear-gradient(to right, var(--text-light), var(--theme-primary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Header specifics */
+        header {
+            background: rgba(5, 5, 5, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* --- NEW INTERACTIVE STYLES --- */
+        .cursor-glow {
+            position: fixed;
+            top: 0; left: 0;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, var(--theme-glow) 0%, transparent 60%);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+        }
+        
+        .floating-element {
+            animation: float 4s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        /* Cards / Glassmorphism (Updated for 3D Tilt) */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--theme-glow);
+            border-radius: 16px;
+            transition: box-shadow 0.3s, border-color 0.3s;
+            transform-style: preserve-3d;
+            will-change: transform;
+        }
+        .glass-card:hover {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 25px var(--theme-glow);
+            border-color: var(--theme-primary);
+        }
+        .glass-card > * {
+            transform: translateZ(30px);
+            display: block;
+        }
+
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Background Elements -->
+    <div class="bg-grid"></div>
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div id="cursor-glow" class="cursor-glow hidden md:block"></div>
+
+    <!-- Navigation Header -->
+    <header class="fixed w-full top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3 lg:py-4 flex flex-col lg:flex-row justify-between items-center gap-3 lg:gap-4">
+            
+            <!-- Mobile Top Row: Logo & Contact -->
+            <div class="flex justify-between items-center w-full lg:w-auto">
+                <!-- Logo -->
+                <div class="text-xl md:text-2xl font-bold brand-font tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-[var(--theme-primary)]"></i>
+                    <span class="text-white">Sasta</span>
+                    <span class="text-[var(--theme-primary)]" style="text-shadow: 0 0 10px var(--theme-glow);">Programmer</span>
+                </div>
+                
+                <!-- Mobile Nav Action (Directs to WhatsApp) -->
+                <a href="https://wa.me/9234929922801" target="_blank" class="btn-sci-fi text-xs py-1.5 px-3 block lg:hidden">Contact</a>
+            </div>
+
+            <!-- The Slider Toggle -->
+            <div class="toggle-container mt-1 lg:mt-0">
+                <span class="toggle-label label-py">Python Academy</span>
+                <label class="switch">
+                    <input type="checkbox" id="mode-toggle">
+                    <span class="slider"></span>
+                </label>
+                <span class="toggle-label label-wd">Web Dev Studio</span>
+            </div>
+
+            <!-- Desktop Nav Actions (Directs to WhatsApp) -->
+            <div class="hidden lg:flex gap-4">
+                <a href="https://wa.me/9234929922801" target="_blank" class="btn-sci-fi text-sm py-2 px-4">Contact Us</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="pt-36 lg:pt-32 pb-20 container mx-auto px-4 sm:px-6 min-h-screen">
+
+        <!-- ========================================== -->
+        <!-- VIEW 1: PYTHON TEACHING (Vibrant, Engaging)-->
+        <!-- ========================================== -->
+        <div id="view-python" class="view-section active">
+            
+            <!-- Hero Section -->
+            <div class="text-center max-w-4xl mx-auto py-16 reveal">
+                <div class="inline-block px-4 py-1 rounded-full border border-[var(--theme-primary)] text-[var(--theme-primary)] text-sm font-semibold mb-6 shadow-[0_0_10px_var(--theme-glow)] bg-[rgba(0,255,102,0.1)] floating-element">
+                <i class="fa-brands fa-python mr-2"></i> Hybrid Matrix Learning
+            </div>
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-gradient leading-tight">
+                Play the Game. <br> Master the Code.
+            </h1>
+            <p class="text-base sm:text-lg text-gray-400 mb-10 max-w-2xl mx-auto">
+                Welcome to the next evolution of learning. We deliver high-impact, community-driven lectures directly to your <b>WhatsApp</b>, while this platform serves as your <b>Gamified Quiz Arena</b>. It's faster, more personal, and insanely addictive.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                <!-- Links updated to point to real files and WhatsApp group -->
+                <a href="registration.html" class="btn-sci-fi btn-solid text-base sm:text-lg px-6 sm:px-8 py-3"><i class="fa-solid fa-gamepad mr-2"></i> Start Quiz Arena</a>
+                <a href="https://chat.whatsapp.com/JkqLVJZmr8l9zt1CEzlnXU?s=cl&p=a&ilr=1" target="_blank" class="btn-sci-fi text-base sm:text-lg px-6 sm:px-8 py-3"><i class="fa-brands fa-whatsapp mr-2"></i> Join WhatsApp Class</a>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
+                <!-- Card 1 -->
+                <div class="glass-card p-8 reveal">
+                    <div class="text-4xl text-[#25D366] mb-4"><i class="fa-brands fa-whatsapp"></i></div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">Pocket-Sized Lectures</h3>
+                    <p class="text-gray-400">Skip the clunky web portals. Receive highly-curated code snippets, voice notes, and live mentor guidance directly in our exclusive WhatsApp matrix. Learning is now in your pocket.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="glass-card p-8 reveal" style="transition-delay: 0.1s;">
+                    <div class="text-4xl text-[var(--theme-primary)] mb-4"><i class="fa-solid fa-puzzle-piece"></i></div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">Gamified Quizzes</h3>
+                    <p class="text-gray-400">Apply your WhatsApp knowledge instantly. Conquer sci-fi themed coding challenges, battle through logic puzzles, and earn XP instead of just watching boring videos.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="glass-card p-8 reveal" style="transition-delay: 0.2s;">
+                    <div class="text-4xl text-[var(--theme-primary)] mb-4"><i class="fa-solid fa-trophy"></i></div>
+                    <h3 class="text-2xl font-bold mb-3 text-white">Rank Up & Dominate</h3>
+                    <p class="text-gray-400">Every quiz matters. Climb the global leaderboard, earn elite hacker badges, and prove your Python supremacy to your peers. Competition breeds excellence.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VIEW 2: WEB DEVELOPMENT (Professional, Sleek)-->
+        <!-- ========================================== -->
+        <div id="view-webdev" class="view-section">
+            
+            <!-- Hero Section -->
+            <div class="text-center max-w-4xl mx-auto py-16 reveal">
+                <div class="inline-block px-4 py-1 rounded-full border border-[var(--theme-primary)] text-[var(--theme-primary)] text-sm font-semibold mb-6 shadow-[0_0_10px_var(--theme-glow)] bg-[rgba(0,212,255,0.1)] floating-element">
+                <i class="fa-solid fa-code mr-2"></i> Digital Architect Studio
+            </div>
+            <h1 class="text-4xl sm:text-5xl md:text-7xl font-bold mb-6 text-gradient leading-tight">
+                Crafting Next-Gen <br> Web Experiences.
+            </h1>
+            <p class="text-base sm:text-lg text-gray-400 mb-10 max-w-2xl mx-auto">
+                We build sleek, high-performance, and scalable web applications. Elevate your brand with professional engineering and cutting-edge design.
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 sm:gap-6">
+                <!-- Links updated to point to the web dev order page -->
+                <a href="order.html" class="btn-sci-fi btn-solid text-base sm:text-lg px-6 sm:px-8 py-3"><i class="fa-solid fa-rocket mr-2"></i> Place Order</a>
+                <a href="order.html" class="btn-sci-fi text-base sm:text-lg px-6 sm:px-8 py-3"><i class="fa-solid fa-folder-open mr-2"></i> See Previous Work</a>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-[rgba(255,255,255,0.05)] bg-[rgba(0,0,0,0.5)] py-8 mt-10">
+        <div class="container mx-auto px-6 text-center text-gray-500 text-sm">
+            <p>&copy; 2026 Sasta Programmer. All rights reserved. <br> Crafted with passion and lots of coffee.</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript for Interactivity -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- 1. Theme Toggling Logic ---
+            const toggleInput = document.getElementById('mode-toggle');
+            const viewPython = document.getElementById('view-python');
+            const viewWebDev = document.getElementById('view-webdev');
+            const body = document.body;
+
+            // Function to update CSS Variables for themes
+            const updateTheme = (isWebDev) => {
+                const root = document.documentElement;
+                if (isWebDev) {
+                    body.classList.add('webdev-active');
+                    root.style.setProperty('--theme-primary', 'var(--wd-primary)');
+                    root.style.setProperty('--theme-secondary', 'var(--wd-secondary)');
+                    root.style.setProperty('--theme-glow', 'var(--wd-glow)');
+                    
+                    // Switch Views smoothly
+                    viewPython.classList.remove('active');
+                    setTimeout(() => viewWebDev.classList.add('active'), 50); // slight delay for smooth reflow
+
+                } else {
+                    body.classList.remove('webdev-active');
+                    root.style.setProperty('--theme-primary', 'var(--py-primary)');
+                    root.style.setProperty('--theme-secondary', 'var(--py-secondary)');
+                    root.style.setProperty('--theme-glow', 'var(--py-glow)');
+                    
+                    // Switch Views smoothly
+                    viewWebDev.classList.remove('active');
+                    setTimeout(() => viewPython.classList.add('active'), 50);
+                }
+                
+                // Re-trigger animations for the new view
+                setTimeout(initScrollReveal, 100);
+            };
+
+            // Listen to slider changes
+            toggleInput.addEventListener('change', (e) => {
+                updateTheme(e.target.checked);
+            });
+
+
+            // --- 2. Scroll Reveal Animations ---
+            const initScrollReveal = () => {
+                // Reset visible classes for currently active view
+                document.querySelectorAll('.view-section.active .reveal').forEach(el => {
+                    el.classList.remove('visible');
+                });
+
+                const revealElements = document.querySelectorAll('.view-section.active .reveal');
+                
+                const revealObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            observer.unobserve(entry.target); // Stop observing once revealed
+                        }
+                    });
+                }, {
+                    root: null,
+                    threshold: 0.15, // Trigger when 15% of the element is visible
+                    rootMargin: "0px 0px -50px 0px"
+                });
+
+                revealElements.forEach(el => revealObserver.observe(el));
+            };
+
+            // Initial trigger
+            initScrollReveal();
+
+            // --- 3. Removed the code that blocked buttons from working ---
+            // (Buttons are now <a> tags, so they will navigate naturally!)
+
+            // --- 4. Interactive Cursor Glow ---
+            const cursorGlow = document.getElementById('cursor-glow');
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+            let glowX = mouseX;
+            let glowY = mouseY;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            // Smoothly animate the cursor glow using linear interpolation (lerp)
+            const animateCursor = () => {
+                glowX += (mouseX - glowX) * 0.1;
+                glowY += (mouseY - glowY) * 0.1;
+                if(cursorGlow) {
+                    cursorGlow.style.left = `${glowX}px`;
+                    cursorGlow.style.top = `${glowY}px`;
+                }
+                requestAnimationFrame(animateCursor);
+            };
+            animateCursor();
+
+            // --- 5. Premium 3D Tilt Effect for Glass Cards ---
+            const initTiltEffect = () => {
+                const cards = document.querySelectorAll('.glass-card');
+                
+                cards.forEach(card => {
+                    card.addEventListener('mousemove', (e) => {
+                        const rect = card.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        
+                        // Calculate rotation up to 12 degrees
+                        const rotateX = ((y - centerY) / centerY) * -12; 
+                        const rotateY = ((x - centerX) / centerX) * 12;
+                        
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+                    });
+                    
+                    card.addEventListener('mouseleave', () => {
+                        // Reset properties smoothly when mouse leaves
+                        card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+                        card.style.transition = 'transform 0.5s ease, box-shadow 0.3s, border-color 0.3s';
+                    });
+                    
+                    card.addEventListener('mouseenter', () => {
+                        // Remove transition during movement so it strictly follows the mouse without lag
+                        card.style.transition = 'box-shadow 0.3s, border-color 0.3s';
+                    });
+                });
+            };
+            
+            initTiltEffect();
+        });
+    </script>
+</body>
+</html>

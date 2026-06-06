@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sasta Programmer | Instructor Override</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --admin-primary: #ff3366;
+            --admin-secondary: #4a0018;
+            --admin-glow: rgba(255, 51, 102, 0.4);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+
+        .glass-card {
+            background: rgba(20, 5, 10, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--admin-glow);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .admin-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 6px 10px;
+            border-radius: 6px;
+            width: 70px;
+            text-align: center;
+            outline: none;
+            transition: all 0.3s;
+        }
+        .admin-input:focus { border-color: var(--admin-primary); box-shadow: 0 0 10px rgba(255, 51, 102, 0.2); }
+
+        .btn-admin {
+            background: var(--admin-primary);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+            white-space: nowrap;
+        }
+        .btn-admin:hover { box-shadow: 0 0 15px var(--admin-glow); transform: translateY(-2px); }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        .status-pending { background: rgba(255, 165, 0, 0.2); color: orange; border: 1px solid orange; }
+        .status-graded { background: rgba(0, 255, 102, 0.2); color: #00ff66; border: 1px solid #00ff66; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: var(--admin-secondary); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--admin-primary); }
+
+        /* Modal specific styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-content { transform: translateY(20px) scale(0.95); transition: all 0.3s ease; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal-overlay.active .modal-content { transform: translateY(0) scale(1); }
+        
+        /* Tabs */
+        .tab-btn {
+            padding: 8px 16px; font-family: 'Space Grotesk', sans-serif; font-weight: bold; text-transform: uppercase;
+            font-size: 0.85rem; color: #666; border-bottom: 2px solid transparent; transition: all 0.3s ease; cursor: pointer;
+        }
+        .tab-btn:hover { color: white; }
+        .tab-btn.active { color: var(--admin-primary); border-bottom-color: var(--admin-primary); text-shadow: 0 0 10px var(--admin-glow); }
+        .admin-view { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .admin-view.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Form Inputs */
+        .admin-form-input {
+            width: 100%; background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px; padding: 10px 14px; color: white; font-family: 'Inter', sans-serif; transition: all 0.3s; outline: none;
+        }
+        .admin-form-input:focus { border-color: var(--admin-primary); box-shadow: 0 0 10px var(--admin-glow); }
+    </style>
+</head>
+<body class="p-2 sm:p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 sm:mb-8 pb-4 border-b border-gray-800 gap-4">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-user-shield text-3xl text-[var(--admin-primary)] drop-shadow-[0_0_10px_var(--admin-glow)]"></i>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold brand-font text-white">Instructor Override</h1>
+                    <p class="text-xs sm:text-sm text-gray-400">Master Control List</p>
+                </div>
+            </div>
+            <div class="text-left sm:text-right bg-red-900/20 px-4 py-2 rounded-lg border border-red-900/50">
+                <p class="text-xs text-gray-400 uppercase tracking-wider">System Status</p>
+                <p class="text-[var(--admin-primary)] font-bold animate-pulse flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[var(--admin-primary)]"></span> SECURE & ONLINE
+                </p>
+            </div>
+        </header>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div class="glass-card p-4">
+                <p class="text-xs text-gray-400 uppercase">Total Students</p>
+                <p class="text-2xl font-bold text-white brand-font">142</p>
+            </div>
+            <div class="glass-card p-4">
+                <p class="text-xs text-gray-400 uppercase">Pending Grading</p>
+                <p class="text-2xl font-bold text-[var(--admin-primary)] brand-font">12</p>
+            </div>
+            <div class="glass-card p-4">
+                <p class="text-xs text-gray-400 uppercase">Active Nodes</p>
+                <p class="text-2xl font-bold text-white brand-font">24 <span class="text-xs text-gray-500 font-normal">Quizzes</span></p>
+            </div>
+        </div>
+
+        <!-- System Tabs -->
+        <div class="flex gap-2 sm:gap-6 mb-6 border-b border-gray-800">
+            <button id="tab-grading" class="tab-btn active" onclick="switchTab('grading')"><i class="fa-solid fa-list-check mr-2"></i> Grading Queue</button>
+            <button id="tab-builder" class="tab-btn" onclick="switchTab('builder')"><i class="fa-solid fa-hammer mr-2"></i> Mission Builder</button>
+        </div>
+
+        <!-- VIEW 1: The Master List (Grading) -->
+        <div id="view-grading" class="admin-view active">
+            <div class="glass-card overflow-hidden">
+                <div class="overflow-x-auto w-full">
+                    <!-- REPAIRED TABLE HTML -->
+                    <table class="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+                        <thead>
+                            <tr class="bg-gray-900/80 text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800">
+                                <th class="p-4 font-normal">Hacker Alias</th>
+                                <th class="p-4 font-normal">Current Stats</th>
+                                <th class="p-4 font-normal">Mission Node</th>
+                                <th class="p-4 font-normal text-right">Instructor Action</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-800">
+                            <!-- Row 1 (Pending) -->
+                            <tr class="hover:bg-gray-900/50 transition-colors">
+                                <td class="p-4">
+                                    <div class="font-bold text-white text-sm sm:text-base">Ali_Matrix</div>
+                                    <div class="text-xs text-gray-500">ali@matrix.com</div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-xs sm:text-sm"><span class="text-gray-400">XP:</span> <span class="font-bold text-[var(--admin-primary)]">450</span></div>
+                                    <div class="text-xs sm:text-sm"><span class="text-gray-400">Accuracy:</span> 85%</div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-xs sm:text-sm font-bold text-white mb-1">Variables & Loops</div>
+                                    <span class="status-badge status-pending mb-1">Pending</span>
+                                    <button onclick="openCodeModal('Ali_Matrix', 'num = int(input(\'Enter num: \'))\nfor i in range(1, 11):\n    print(num * i)')" class="ml-0 sm:ml-2 block sm:inline-block text-xs text-[var(--admin-primary)] hover:underline hover:text-white transition-colors">
+                                        <i class="fa-solid fa-code"></i> Read Code
+                                    </button>
+                                </td>
+                                <td class="p-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <input type="number" placeholder="+ XP" class="admin-input" id="xp-input-1" value="50">
+                                        <button class="btn-admin" onclick="gradeStudent('1', true, this)"><i class="fa-solid fa-check"></i> Pass</button>
+                                        <button class="btn-admin !bg-gray-800 hover:!bg-red-600 text-gray-300" onclick="gradeStudent('1', false, this)"><i class="fa-solid fa-xmark"></i> Fail</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <!-- Row 2 (Graded) -->
+                            <tr class="hover:bg-gray-900/50 transition-colors opacity-70">
+                                <td class="p-4">
+                                    <div class="font-bold text-white text-sm sm:text-base">Sarah_Connor</div>
+                                    <div class="text-xs text-gray-500">sarah@sky.net</div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-xs sm:text-sm"><span class="text-gray-400">XP:</span> <span class="font-bold text-[var(--admin-primary)]">600</span></div>
+                                    <div class="text-xs sm:text-sm"><span class="text-gray-400">Accuracy:</span> 100%</div>
+                                </td>
+                                <td class="p-4">
+                                    <div class="text-xs sm:text-sm font-bold text-gray-300 mb-1">If/Else Logic</div>
+                                    <span class="status-badge status-graded">Graded</span>
+                                </td>
+                                <td class="p-4 text-right">
+                                    <span class="text-xs text-gray-500 italic">No action required</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: Mission Builder (Add Quizzes) -->
+        <div id="view-builder" class="admin-view">
+            <div class="glass-card p-6 md:p-8 max-w-4xl mx-auto">
+                <div class="mb-6 pb-4 border-b border-gray-800 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-xl font-bold text-white brand-font"><i class="fa-solid fa-server text-[var(--admin-primary)] mr-2"></i> Deploy Mission Node</h2>
+                        <p class="text-sm text-gray-400 mt-1">Create a new topic folder (Mission Pack) and inject quiz questions.</p>
+                    </div>
+                </div>
+
+                <form id="mission-builder-form" class="space-y-6">
+                    <div class="bg-black/40 p-5 rounded-lg border border-gray-800">
+                        <h3 class="text-[var(--admin-primary)] text-sm font-bold uppercase tracking-widest mb-4"><i class="fa-solid fa-folder-open mr-2"></i> 1. Node Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2">Mission Title</label>
+                                <input type="text" class="admin-form-input" placeholder="e.g., Operation: Python Loops" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-gray-400 uppercase tracking-widest mb-2">Total XP Pool</label>
+                                <input type="number" class="admin-form-input text-[var(--admin-primary)] font-bold" placeholder="e.g., 500" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bulk Upload Zone -->
+                    <div class="border-2 border-dashed border-[var(--admin-primary)]/50 bg-[var(--admin-glow)]/10 rounded-xl p-8 text-center hover:border-[var(--admin-primary)] hover:bg-[var(--admin-glow)]/20 transition-all cursor-pointer group" id="upload-zone">
+                        <div class="w-16 h-16 rounded-full bg-black/50 border border-[var(--admin-primary)] flex items-center justify-center mx-auto mb-4 text-2xl text-[var(--admin-primary)] group-hover:scale-110 transition-transform">
+                            <i class="fa-solid fa-file-csv"></i>
+                        </div>
+                        <h3 class="text-white font-bold text-lg mb-2">Mass Question Injection</h3>
+                        <p class="text-gray-400 text-sm mb-4">Drag & drop your Excel/CSV file here to instantly upload 30+ MCQs.</p>
+                        <input type="file" id="csv-file" class="hidden" accept=".csv">
+                        <button type="button" onclick="document.getElementById('csv-file').click()" class="btn-admin !bg-transparent border border-[var(--admin-primary)] hover:!bg-[var(--admin-primary)]">
+                            Select File
+                        </button>
+                    </div>
+
+                    <!-- Deploy Button -->
+                    <div class="pt-4 flex justify-end">
+                        <button type="submit" id="deploy-btn" class="btn-admin !text-sm !py-3 !px-8 flex items-center gap-2 w-full md:w-auto justify-center">
+                            <i class="fa-solid fa-satellite-dish"></i> Deploy Node to Mainframe
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Code Viewer Modal -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal-content glass-card p-0 w-full max-w-2xl mx-4 border-t border-[var(--admin-primary)] overflow-hidden flex flex-col">
+            <div class="bg-gray-900 p-4 border-b border-gray-800 flex justify-between items-center">
+                <div>
+                    <h3 class="text-white font-bold brand-font text-sm sm:text-base"><i class="fa-solid fa-terminal text-[var(--admin-primary)] mr-2"></i> Inspecting Code</h3>
+                    <p id="modal-student-name" class="text-xs text-gray-400 mt-1">Student: --</p>
+                </div>
+                <button onclick="closeCodeModal()" class="text-gray-400 hover:text-white transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 bg-[#0a0a0a] overflow-y-auto flex-1 max-h-[60vh]">
+                <pre class="text-green-400 font-mono text-xs sm:text-sm leading-relaxed whitespace-pre-wrap" id="modal-code-content">// Code goes here</pre>
+            </div>
+            <div class="bg-gray-900 p-4 border-t border-gray-800 flex justify-end">
+                <button onclick="closeCodeModal()" class="btn-admin !bg-gray-700 hover:!bg-gray-600">Close Window</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Frontend Interaction Script -->
+    <script>
+        function gradeStudent(studentId, isCorrect, btnElement) {
+            const xpInput = document.getElementById(`xp-input-${studentId}`);
+            const xpValue = xpInput.value;
+            const buttonContainer = btnElement.parentElement;
+            
+            btnElement.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            setTimeout(() => {
+                buttonContainer.innerHTML = `<span class="text-xs font-bold text-${isCorrect ? '[#00ff66]' : 'red-500'}"><i class="fa-solid ${isCorrect ? 'fa-check' : 'fa-xmark'} mr-1"></i> ${isCorrect ? `+${xpValue} XP` : 'Failed'}</span>`;
+                buttonContainer.closest('tr').classList.add('opacity-70');
+                const badge = buttonContainer.closest('tr').querySelector('.status-pending');
+                if(badge) {
+                    badge.className = `status-badge ${isCorrect ? 'status-graded' : 'bg-red-900/30 text-red-400 border border-red-900'}`;
+                    badge.innerText = isCorrect ? 'Graded' : 'Failed';
+                }
+            }, 800);
+        }
+
+        const modal = document.getElementById('code-modal');
+        function openCodeModal(studentName, codeStr) {
+            document.getElementById('modal-student-name').innerText = `Hacker Alias: ${studentName}`;
+            document.getElementById('modal-code-content').innerText = codeStr;
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCodeModal() {
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function switchTab(tabName) {
+            document.getElementById('tab-grading').classList.remove('active');
+            document.getElementById('tab-builder').classList.remove('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+            document.getElementById('view-grading').classList.remove('active');
+            document.getElementById('view-builder').classList.remove('active');
+            document.getElementById('view-' + tabName).classList.add('active');
+        }
+
+        document.getElementById('mission-builder-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('deploy-btn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deploying...';
+            btn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Deployed';
+                btn.classList.add('!bg-green-600');
+                setTimeout(() => {
+                    this.reset();
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('!bg-green-600');
+                    btn.style.pointerEvents = 'auto';
+                }, 2000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

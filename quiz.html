@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sasta Programmer | Gamified Arena</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --theme-primary: #00ff66;
+            --theme-secondary: #0a4d22;
+            --theme-glow: rgba(0, 255, 102, 0.4);
+            --theme-bg-trans: rgba(0, 255, 102, 0.05);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            color: #e0e0e0;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, .brand-font { font-family: 'Space Grotesk', sans-serif; }
+
+        /* Background Grid */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: linear-gradient(var(--theme-secondary) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--theme-secondary) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            z-index: -2;
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(10, 10, 10, 0.6);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--theme-glow);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .btn-sci-fi {
+            position: relative;
+            padding: 10px 24px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            background: transparent;
+            color: var(--theme-primary);
+            border: 1px solid var(--theme-primary);
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+        .btn-sci-fi:hover {
+            background: var(--theme-primary);
+            color: #000;
+            box-shadow: 0 0 15px var(--theme-glow);
+        }
+
+        /* Quiz Specific Options */
+        .quiz-option {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 16px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 64px; /* Mobile touch optimization */
+        }
+        .quiz-option:active:not(.disabled) { transform: scale(0.98); }
+        .quiz-option:hover:not(.disabled) {
+            background: var(--theme-bg-trans);
+            border-color: var(--theme-primary);
+        }
+
+        /* Views */
+        .game-view { display: none; opacity: 0; transition: opacity 0.4s ease; }
+        .game-view.active { display: block; opacity: 1; }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+        .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .floating-xp {
+            position: absolute;
+            color: var(--theme-primary);
+            font-weight: bold;
+            font-family: 'Space Grotesk', sans-serif;
+            text-shadow: 0 0 10px var(--theme-glow);
+            pointer-events: none;
+            animation: floatUp 1s ease-out forwards;
+            z-index: 100;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-50px) scale(1.5); opacity: 0; }
+        }
+        
+        /* Modal specific styles */
+        .modal-overlay { pointer-events: none; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-overlay.active #message-modal-content { transform: scale(1); }
+    </style>
+</head>
+<body class="flex flex-col h-screen overflow-hidden">
+
+    <!-- Background Elements -->
+    <div class="bg-grid"></div>
+
+    <!-- Header -->
+    <header class="w-full top-0 z-50 p-4 sm:p-6 flex justify-between items-center border-b border-gray-800 bg-black/50 backdrop-blur-md">
+        <div class="text-xl font-bold brand-font tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-gamepad text-[var(--theme-primary)]"></i>
+            <span class="text-white hidden sm:inline">Gamified Arena</span>
+        </div>
+        <button onclick="showMessage('Simulation Mode', 'Terminal disconnection simulated in preview environment.')" class="text-gray-400 hover:text-[var(--theme-primary)] text-sm uppercase tracking-widest font-bold transition-colors">
+            <i class="fa-solid fa-right-from-bracket mr-2"></i> Disconnect
+        </button>
+    </header>
+
+    <!-- Main Game Area -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-8 relative">
+
+        <!-- VIEW 1: Mission Map -->
+        <div id="view-map" class="game-view active max-w-5xl mx-auto">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl sm:text-4xl font-bold text-white brand-font mb-2 text-shadow-[0_0_10px_var(--theme-glow)]">Select Target Node</h1>
+                <p class="text-gray-400">Infiltrate the mainframe by completing Python missions.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" id="mission-grid">
+                <!-- Nodes generated by JS -->
+            </div>
+        </div>
+
+        <!-- VIEW 2: Active Hack (Quiz) -->
+        <div id="view-quiz" class="game-view max-w-3xl mx-auto mt-4 sm:mt-10">
+            <!-- HUD -->
+            <div class="glass-card p-4 sm:p-6 mb-6 flex justify-between items-center bg-black/80">
+                <div>
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">Stealth Points</p>
+                    <div class="flex gap-2 text-xl" id="lives-container">
+                        <!-- Hearts -->
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-xs text-gray-500 uppercase tracking-widest font-bold mb-1">XP Yield</p>
+                    <p class="text-2xl font-bold text-[var(--theme-primary)] brand-font" id="current-xp-display">0</p>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full h-2 bg-gray-900 rounded-full mb-8 overflow-hidden border border-gray-800">
+                <div id="quiz-progress" class="h-full bg-[var(--theme-primary)] w-0 transition-all duration-300 shadow-[0_0_10px_var(--theme-glow)]"></div>
+            </div>
+
+            <!-- Question Area -->
+            <div class="glass-card p-6 sm:p-10 relative">
+                <h2 class="text-xl sm:text-2xl font-bold text-white mb-6 leading-relaxed" id="question-text">
+                    Loading decryption protocol...
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-6 sm:mt-8" id="options-container">
+                    <!-- Options generated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 3: Result Screen -->
+        <div id="view-result" class="game-view max-w-md mx-auto mt-20 text-center">
+            <div class="glass-card p-8 sm:p-10" id="result-card">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Message Modal -->
+    <div id="message-modal" class="modal-overlay hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[1000] flex items-center justify-center opacity-0 transition-opacity duration-300">
+        <div class="glass-card p-8 max-w-sm w-full mx-4 text-center border-t border-[var(--theme-primary)] transform scale-95 transition-transform duration-300" id="message-modal-content">
+            <div class="w-16 h-16 rounded-full bg-[var(--theme-bg-trans)] border border-[var(--theme-primary)] flex items-center justify-center mx-auto mb-4 text-2xl text-[var(--theme-primary)] shadow-[0_0_15px_var(--theme-glow)]">
+                <i class="fa-solid fa-satellite-dish"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2 brand-font" id="message-modal-title">Notice</h3>
+            <p class="text-gray-400 text-sm mb-6" id="message-modal-text">Message goes here.</p>
+            <button onclick="closeMessageModal()" class="btn-sci-fi text-sm py-2">Acknowledge</button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // --- GAME DATA (Simulating Backend Response) ---
+        let missionData = [
+            {
+                id: "m1",
+                title: "Variables & Types",
+                status: "completed", // completed, unlocked, locked
+                totalQuestions: 3,
+                questions: [
+                    { q: "Which of the following is NOT a valid Python variable name?", options: ["my_var", "_myVar", "2ndVar", "var2"], correct: 2, xpReward: 20 },
+                    { q: "What data type is the value: 3.14?", options: ["Integer", "String", "Boolean", "Float"], correct: 3, xpReward: 10 },
+                    { q: "How do you start a single-line comment in Python?", options: ["//", "/*", "#", "<!--"], correct: 2, xpReward: 10 }
+                ]
+            },
+            {
+                id: "m2",
+                title: "Operation: Python Loops",
+                status: "unlocked",
+                totalQuestions: 3,
+                questions: [
+                    { q: "Which loop runs as long as a condition remains true?", options: ["for loop", "while loop", "do-while loop", "foreach loop"], correct: 1, xpReward: 25 },
+                    { q: "What will range(3) produce in a for loop?", options: ["1, 2, 3", "0, 1, 2", "0, 1, 2, 3", "1, 2"], correct: 1, xpReward: 20 },
+                    { q: "What keyword is used to instantly exit a loop?", options: ["stop", "exit", "return", "break"], correct: 3, xpReward: 25 }
+                ]
+            },
+            {
+                id: "m3",
+                title: "Syntax Sorcery (Functions)",
+                status: "locked",
+                totalQuestions: 5,
+                questions: [] // Locked missions don't need questions loaded yet
+            }
+        ];
+
+        // --- GAME STATE ---
+        let currentMission = null;
+        let currentQIndex = 0;
+        let stealthPoints = 3;
+        let totalXP = 0;
+
+        // --- CORE FUNCTIONS ---
+        function switchView(viewId) {
+            document.querySelectorAll('.game-view').forEach(el => {
+                el.classList.remove('active');
+                setTimeout(() => el.style.display = 'none', 400); // Wait for fade out
+            });
+            setTimeout(() => {
+                const target = document.getElementById('view-' + viewId);
+                target.style.display = 'block';
+                // Trigger reflow
+                void target.offsetWidth;
+                target.classList.add('active');
+            }, 400);
+        }
+
+        function renderMap() {
+            const grid = document.getElementById('mission-grid');
+            grid.innerHTML = '';
+
+            missionData.forEach(mission => {
+                let statusClasses, icon, action;
+
+                if (mission.status === 'completed') {
+                    statusClasses = 'border-[var(--theme-primary)] bg-[var(--theme-primary)]/10';
+                    icon = '<i class="fa-solid fa-check-circle text-[var(--theme-primary)]"></i>';
+                    action = `<button onclick="startMission('${mission.id}')" class="text-xs text-[var(--theme-primary)] hover:underline mt-4 block">Replay Node</button>`;
+                } else if (mission.status === 'unlocked') {
+                    statusClasses = 'border-white/20 hover:border-[var(--theme-primary)] hover:shadow-[0_0_15px_var(--theme-glow)] cursor-pointer';
+                    icon = '<i class="fa-solid fa-unlock text-white"></i>';
+                    action = `<button onclick="startMission('${mission.id}')" class="btn-sci-fi w-full mt-4 !text-xs !py-2">Hack Node</button>`;
+                } else {
+                    statusClasses = 'border-red-900/30 bg-black/50 opacity-60';
+                    icon = '<i class="fa-solid fa-lock text-red-500"></i>';
+                    action = `<p class="text-xs text-red-500 mt-4"><i class="fa-solid fa-shield-halved"></i> Access Denied</p>`;
+                }
+
+                grid.innerHTML += `
+                    <div class="glass-card p-6 ${statusClasses} transition-all">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-10 h-10 rounded-full bg-black/50 border border-gray-700 flex items-center justify-center text-lg">
+                                ${icon}
+                            </div>
+                            <span class="text-xs text-gray-500 font-bold">${mission.totalQuestions} Qs</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white mb-1 brand-font">${mission.title}</h3>
+                        <p class="text-xs text-gray-400">Classified Python Data</p>
+                        ${action}
+                    </div>
+                `;
+            });
+        }
+
+        function startMission(missionId) {
+            currentMission = missionData.find(m => m.id === missionId);
+            currentQIndex = 0;
+            stealthPoints = 3;
+            totalXP = 0;
+            
+            updateHUD();
+            loadQuestion();
+            switchView('quiz');
+        }
+
+        function updateHUD() {
+            // Update XP
+            document.getElementById('current-xp-display').innerText = totalXP;
+            
+            // Update Lives (Stealth Points)
+            const livesContainer = document.getElementById('lives-container');
+            livesContainer.innerHTML = '';
+            for(let i=0; i<3; i++) {
+                if(i < stealthPoints) {
+                    livesContainer.innerHTML += `<i class="fa-solid fa-heart text-[var(--theme-primary)] drop-shadow-[0_0_5px_var(--theme-glow)]"></i>`;
+                } else {
+                    livesContainer.innerHTML += `<i class="fa-regular fa-heart text-gray-700"></i>`;
+                }
+            }
+
+            // Update Progress Bar
+            if(currentMission) {
+                const percent = (currentQIndex / currentMission.questions.length) * 100;
+                document.getElementById('quiz-progress').style.width = `${percent}%`;
+            }
+        }
+
+        function loadQuestion() {
+            if (currentQIndex >= currentMission.questions.length) {
+                endMission(true);
+                return;
+            }
+
+            const qData = currentMission.questions[currentQIndex];
+            document.getElementById('question-text').innerText = qData.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            const alphabet = ['A', 'B', 'C', 'D'];
+            qData.options.forEach((opt, index) => {
+                optionsContainer.innerHTML += `
+                    <div onclick="selectOption(${index}, this)" class="quiz-option group">
+                        <div class="w-8 h-8 rounded bg-black/50 border border-gray-700 flex items-center justify-center text-gray-400 font-bold text-sm group-hover:text-[var(--theme-primary)] group-hover:border-[var(--theme-primary)] transition-colors">
+                            ${alphabet[index]}
+                        </div>
+                        <span class="text-sm sm:text-base text-gray-200">${opt}</span>
+                    </div>
+                `;
+            });
+
+            updateHUD();
+        }
+
+        function selectOption(selectedIndex, element) {
+            if (element.classList.contains('disabled')) return; // Prevent multiple clicks
+            
+            // Disable all options immediately
+            const allOptions = document.querySelectorAll('.quiz-option');
+            allOptions.forEach(opt => {
+                opt.classList.add('disabled', 'opacity-50', 'cursor-not-allowed');
+            });
+            element.classList.remove('opacity-50');
+
+            const currentQ = currentMission.questions[currentQIndex];
+
+            if (selectedIndex === currentQ.correct) {
+                // CORRECT LOGIC
+                element.classList.add('!bg-[var(--theme-secondary)]', '!border-[var(--theme-primary)]');
+                
+                // Add XP
+                totalXP += currentQ.xpReward;
+                updateHUD();
+                createFloatingXP(currentQ.xpReward);
+
+                // Move to next question after delay
+                setTimeout(() => {
+                    currentQIndex++;
+                    loadQuestion();
+                }, 1000);
+
+            } else {
+                // WRONG LOGIC
+                element.classList.add('!bg-red-900/40', '!border-red-500');
+                stealthPoints--;
+                updateHUD();
+
+                // Trigger Screen Shake
+                const quizView = document.getElementById('view-quiz');
+                quizView.classList.add('animate-shake');
+                setTimeout(() => quizView.classList.remove('animate-shake'), 400);
+
+                // Highlight the actual correct answer
+                allOptions[currentQ.correct].classList.remove('opacity-50');
+                allOptions[currentQ.correct].classList.add('!border-[var(--theme-primary)]', '!text-[var(--theme-primary)]');
+
+                if (stealthPoints <= 0) {
+                    setTimeout(() => endMission(false), 1200);
+                } else {
+                    setTimeout(() => {
+                        currentQIndex++;
+                        loadQuestion();
+                    }, 1500);
+                }
+            }
+        }
+
+        function createFloatingXP(amount) {
+            const xpText = document.createElement('div');
+            xpText.classList.add('floating-xp');
+            xpText.innerText = `+${amount} XP`;
+            
+            // Position near the HUD XP display
+            const hud = document.getElementById('current-xp-display').getBoundingClientRect();
+            xpText.style.left = `${hud.left - 20}px`;
+            xpText.style.top = `${hud.top + 20}px`;
+            
+            document.body.appendChild(xpText);
+            setTimeout(() => xpText.remove(), 1000);
+        }
+
+        function endMission(isVictory) {
+            const resultCard = document.getElementById('result-card');
+            
+            if (isVictory) {
+                resultCard.innerHTML = `
+                    <div class="w-20 h-20 rounded-full bg-[var(--theme-bg-trans)] border-2 border-[var(--theme-primary)] flex items-center justify-center mx-auto mb-6 text-4xl text-[var(--theme-primary)] shadow-[0_0_20px_var(--theme-glow)]">
+                        <i class="fa-solid fa-unlock-keyhole"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white brand-font mb-2">Mainframe Breached</h2>
+                    <p class="text-gray-400 text-sm mb-6">Mission accomplished. Data secured.</p>
+                    
+                    <div class="bg-black/50 rounded-lg p-4 mb-8 border border-gray-800 flex justify-between items-center">
+                        <span class="text-xs text-gray-500 uppercase tracking-widest font-bold">Total XP Yield</span>
+                        <span class="text-2xl font-bold text-[var(--theme-primary)] brand-font">+${totalXP}</span>
+                    </div>
+                    
+                    <button onclick="finishAndSyncXP()" class="btn-sci-fi w-full py-3">Sync XP to Mainframe</button>
+                `;
+            } else {
+                resultCard.innerHTML = `
+                    <div class="w-20 h-20 rounded-full bg-red-900/20 border-2 border-red-500 flex items-center justify-center mx-auto mb-6 text-4xl text-red-500 shadow-[0_0_20px_rgba(255,0,0,0.3)]">
+                        <i class="fa-solid fa-skull-crossbones"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white brand-font mb-2">Connection Severed</h2>
+                    <p class="text-gray-400 text-sm mb-8">You triggered too many alarms. Stealth points depleted.</p>
+                    
+                    <button onclick="switchView('map')" class="btn-sci-fi !border-red-500 !text-red-500 hover:!bg-red-500 hover:!text-white w-full py-3">Return to Map</button>
+                `;
+            }
+            switchView('result');
+        }
+
+        function showMessage(title, text, callback = null) {
+            const modal = document.getElementById('message-modal');
+            document.getElementById('message-modal-title').innerText = title;
+            document.getElementById('message-modal-text').innerText = text;
+            modal.classList.remove('hidden');
+            
+            // Allow display block to apply before animating opacity
+            setTimeout(() => modal.classList.add('active'), 10);
+            window.modalCallback = callback;
+        }
+
+        function closeMessageModal() {
+            const modal = document.getElementById('message-modal');
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (window.modalCallback) {
+                    window.modalCallback();
+                    window.modalCallback = null;
+                }
+            }, 300);
+        }
+
+        function finishAndSyncXP() {
+            showMessage("XP Synced", "XP Successfully Synced to Mainframe! Returning to Map.", () => {
+                switchView('map');
+            });
+        }
+
+        // Initialize Map on Load
+        document.addEventListener('DOMContentLoaded', renderMap);
+
+    </script>
+</body>
+</html>
