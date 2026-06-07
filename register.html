@@ -18,11 +18,8 @@
 
     <style>
         :root {
-            /* Base Colors */
             --bg-dark: #050505;
             --text-light: #e0e0e0;
-            
-            /* Python Theme (Vibrant, Engaging, Cyber-Hacker) */
             --theme-primary: #00ff66;
             --theme-secondary: #0a4d22;
             --theme-glow: rgba(0, 255, 102, 0.4);
@@ -387,9 +384,15 @@
 
     <!-- Interactive Scripts -->
     <script>
-        // Global function for toggling password visibility
+        // --- SECURITY BOUNCER (DISABLED FOR TESTING) ---
+        // Commented out so you can access this page to create multiple accounts!
+        // if (localStorage.getItem('sasta_token')) {
+        //     window.location.href = 'dashboard.html';
+        // }
+
         function togglePasswordVisibility(inputId, iconElement) {
             const input = document.getElementById(inputId);
+            if (!input) return; 
             if (input.type === "password") {
                 input.type = "text";
                 iconElement.classList.remove('fa-eye');
@@ -413,80 +416,169 @@
             const confirmPassInput = document.getElementById('confirmPassword');
             const modal = document.getElementById('success-modal');
             const closeModal = document.getElementById('close-modal');
-            const modalTitle = modal.querySelector('h3');
-            const modalDesc = modal.querySelector('p');
+            
+            const modalTitle = modal ? modal.querySelector('h3') : null;
+            const modalDesc = modal ? modal.querySelector('p') : null;
 
-            // View Toggling Elements
             const registerView = document.getElementById('register-view');
             const loginView = document.getElementById('login-view');
             const goToLogin = document.getElementById('go-to-login');
             const goToRegister = document.getElementById('go-to-register');
 
-            // Toggle to Login View
-            goToLogin.addEventListener('click', (e) => {
-                e.preventDefault();
-                registerView.classList.remove('active');
-                loginView.classList.add('active');
-            });
+            if (goToLogin && registerView && loginView) {
+                goToLogin.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    registerView.classList.remove('active');
+                    loginView.classList.add('active');
+                });
+            }
 
-            // Toggle to Register View
-            goToRegister.addEventListener('click', (e) => {
-                e.preventDefault();
-                loginView.classList.remove('active');
-                registerView.classList.add('active');
-            });
+            if (goToRegister && registerView && loginView) {
+                goToRegister.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    loginView.classList.remove('active');
+                    registerView.classList.add('active');
+                });
+            }
 
-            // Registration Form Submit Logic (Frontend Only)
-            form.addEventListener('submit', (e) => {
-                e.preventDefault(); // Prevent page reload
-                
-                // Basic validation check
-                if(passInput.value !== confirmPassInput.value) {
-                    // Temporarily change border to red
-                    confirmPassInput.style.borderColor = '#ff3333';
-                    setTimeout(() => confirmPassInput.style.borderColor = '', 2000);
-                    return;
-                }
+            // ==========================================
+            // 🚀 LIVE REGISTRATION LOGIC (FIXED PAYLOAD)
+            // ==========================================
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault(); 
+                    
+                    if (passInput && confirmPassInput && passInput.value !== confirmPassInput.value) {
+                        confirmPassInput.style.borderColor = '#ff3333';
+                        setTimeout(() => confirmPassInput.style.borderColor = '', 2000);
+                        return;
+                    }
 
-                // Show custom modal instead of alert()
-                modalTitle.innerText = "Access Granted";
-                modalDesc.innerText = "Your profile has been created. Awaiting backend integration to save to the mainframe.";
-                modal.classList.add('active');
-            });
+                    const btn = form.querySelector('button[type="submit"]');
+                    let originalText = '';
+                    if (btn) {
+                        originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Initializing...';
+                        btn.style.pointerEvents = 'none';
+                    }
 
-            // Login Form Submit Logic (Frontend Only)
-            loginForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                // Show custom modal
-                modalTitle.innerText = "Authentication Valid";
-                modalDesc.innerText = "Welcome back to the matrix. Initializing the Gamified Quiz Arena...";
-                modal.classList.add('active');
-            });
+                    try {
+                        const nameInput = document.getElementById('fullName');
+                        const whatsappInput = document.getElementById('whatsapp');
+                        const emailInput = document.getElementById('email');
+                        const usernameInput = document.getElementById('username');
 
-            // Close Modal
-            closeModal.addEventListener('click', () => {
-                modal.classList.remove('active');
-                form.reset(); // Clear form
-            });
+                        const response = await fetch('https://sasta-backend-at4r.onrender.com/api/auth/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                fullName: nameInput ? nameInput.value : '', // FIXED: Was 'name' instead of 'fullName'
+                                whatsapp: whatsappInput ? whatsappInput.value : '',
+                                email: emailInput ? emailInput.value : '',
+                                username: usernameInput ? usernameInput.value : '',
+                                password: passInput ? passInput.value : ''
+                            })
+                        });
 
-            // Auto-Generate Password Feature
-            generateBtn.addEventListener('click', () => {
-                const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
-                let generated = "";
-                for (let i = 0; i < 12; i++) {
-                    generated += chars.charAt(Math.floor(Math.random() * chars.length));
-                }
-                passInput.value = generated;
-                confirmPassInput.value = generated;
-                
-                // Add a cool visual flash
-                passInput.style.backgroundColor = 'var(--theme-bg-trans)';
-                confirmPassInput.style.backgroundColor = 'var(--theme-bg-trans)';
-                setTimeout(() => {
-                    passInput.style.backgroundColor = '';
-                    confirmPassInput.style.backgroundColor = '';
-                }, 300);
-            });
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            localStorage.setItem('sasta_token', data.token);
+                            
+                            if (modalTitle) modalTitle.innerText = "Access Granted";
+                            if (modalDesc) modalDesc.innerText = "Profile integrated into the mainframe. Welcome to Sasta Programmer.";
+                            if (modal) modal.classList.add('active');
+                        } else {
+                            alert(`Error: ${data.message || 'Registration failed'}`);
+                        }
+                    } catch (error) {
+                        console.error("API Error:", error);
+                        alert("Mainframe is offline. Please try again later.");
+                    } finally {
+                        if (btn) {
+                            btn.innerHTML = originalText;
+                            btn.style.pointerEvents = 'auto';
+                        }
+                    }
+                });
+            }
+
+            // ==========================================
+            // 🚀 LIVE LOGIN LOGIC
+            // ==========================================
+            if (loginForm) {
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const btn = loginForm.querySelector('button[type="submit"]');
+                    let originalText = '';
+                    if (btn) {
+                        originalText = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Authenticating...';
+                        btn.style.pointerEvents = 'none';
+                    }
+
+                    try {
+                        const loginIdInput = document.getElementById('loginId');
+                        const loginPasswordInput = document.getElementById('loginPassword');
+
+                        const response = await fetch('https://sasta-backend-at4r.onrender.com/api/auth/login', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                username: loginIdInput ? loginIdInput.value : '',
+                                password: loginPasswordInput ? loginPasswordInput.value : ''
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            localStorage.setItem('sasta_token', data.token);
+                            
+                            if (modalTitle) modalTitle.innerText = "Authentication Valid";
+                            if (modalDesc) modalDesc.innerText = "Welcome back to the matrix. Entering the Dashboard...";
+                            if (modal) modal.classList.add('active');
+                        } else {
+                            alert("Invalid Hacker Alias or Passcode.");
+                        }
+                    } catch (error) {
+                        console.error("API Error:", error);
+                        alert("Mainframe is offline. Please try again later.");
+                    } finally {
+                        if (btn) {
+                            btn.innerHTML = originalText;
+                            btn.style.pointerEvents = 'auto';
+                        }
+                    }
+                });
+            }
+
+            if (closeModal && modal) {
+                closeModal.addEventListener('click', () => {
+                    modal.classList.remove('active');
+                    window.location.href = 'dashboard.html'; 
+                });
+            }
+
+            if (generateBtn) {
+                generateBtn.addEventListener('click', () => {
+                    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+                    let generated = "";
+                    for (let i = 0; i < 12; i++) {
+                        generated += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    if (passInput) passInput.value = generated;
+                    if (confirmPassInput) confirmPassInput.value = generated;
+                    
+                    if (passInput) passInput.style.backgroundColor = 'var(--theme-bg-trans)';
+                    if (confirmPassInput) confirmPassInput.style.backgroundColor = 'var(--theme-bg-trans)';
+                    setTimeout(() => {
+                        if (passInput) passInput.style.backgroundColor = '';
+                        if (confirmPassInput) confirmPassInput.style.backgroundColor = '';
+                    }, 300);
+                });
+            }
         });
     </script>
 </body>
